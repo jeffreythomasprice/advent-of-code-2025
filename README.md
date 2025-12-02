@@ -5,6 +5,8 @@ TESTS=day_1b_sample gleam test
 TESTS=day_1b gleam test
 TESTS=day_2a_sample gleam test
 TESTS=day_2a gleam test
+TESTS=day_2b_sample gleam test
+TESTS=day_2b gleam test
 ```
 
 less output
