@@ -1,3 +1,4 @@
+import gleam/list
 import gleam/regexp
 import gleam/result
 import gleam/string
@@ -72,5 +73,30 @@ pub fn match_remaining_lines_regexp(
     Ok(#(results, [])) -> Ok(results)
     Ok(#(_, _)) -> Error(MatchLinesUntilUnmatchedLines)
     Error(e) -> Error(e)
+  }
+}
+
+pub fn list_of_results_to_result(l: List(Result(t, e))) -> Result(List(t), e) {
+  let #(oks, errors) =
+    l
+    |> list.fold(#([], []), fn(acc, x) {
+      let #(oks, errors) = acc
+      case x {
+        Error(e) -> #(oks, [e, ..errors])
+        Ok(t) -> #([t, ..oks], errors)
+      }
+    })
+  let oks = oks |> list.reverse
+  let errors = errors |> list.reverse
+  case errors {
+    [] -> Ok(oks)
+    [e, ..] -> Error(e)
+  }
+}
+
+pub fn iterate_integers(current: Int, step step: Int, end end: Int) -> List(Int) {
+  case current <= end {
+    True -> [current, ..iterate_integers(current + step, step: step, end: end)]
+    False -> []
   }
 }

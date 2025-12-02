@@ -35,7 +35,7 @@ fn rotate(current: Int, input: Line) -> #(Int, Int) {
 
   // all the multiples of 100 that potentially span the range of numbers
   let breakpoints =
-    iterate_integers(
+    utils.iterate_integers(
       { min / 100 } * 100 - 100,
       step: 100,
       end: { max / 100 } * 100 + 100,
@@ -53,13 +53,6 @@ fn rotate(current: Int, input: Line) -> #(Int, Int) {
     |> list.length
 
   #(result, times_passing_zero)
-}
-
-fn iterate_integers(current: Int, step step: Int, end end: Int) -> List(Int) {
-  case current <= end {
-    True -> [current, ..iterate_integers(current + step, step: step, end: end)]
-    False -> []
-  }
 }
 
 fn parse_puzzle(filename: String) -> Result(List(Line), String) {
