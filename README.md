@@ -11,6 +11,8 @@ TESTS=day_3a_sample gleam test
 TESTS=day_3a gleam test
 TESTS=day_3b_sample gleam test
 TESTS=day_3b gleam test
+TESTS=day_4a_sample gleam test
+TESTS=day_4a gleam test
 ```
 
 less output
