@@ -16,28 +16,7 @@ type Puzzle {
 
 pub fn main(filename: String) -> Int {
   let assert Ok(p) = parse_puzzle(filename)
-
-  let Puzzle(width:, height:, ..) = p
-
-  let x_list = utils.iterate_integers(0, step: 1, end: width - 1)
-  let y_list = utils.iterate_integers(0, step: 1, end: height - 1)
-
-  x_list
-  |> list.map(fn(x) {
-    y_list
-    |> list.map(fn(y) {
-      case puzzle_get_at(p, x, y) {
-        option.Some(Box) ->
-          case puzzle_count_neighbor_boxes(p, x, y) {
-            n if n < 4 -> 1
-            _ -> 0
-          }
-        _ -> 0
-      }
-    })
-  })
-  |> list.flatten
-  |> list.fold(0, fn(a, b) { a + b })
+  remove_boxes_until_we_cant(p)
 }
 
 fn parse_puzzle(filename: String) -> Result(Puzzle, String) {
@@ -88,6 +67,19 @@ fn puzzle_get_at(p: Puzzle, x: Int, y: Int) -> option.Option(Cell) {
   }
 }
 
+fn puzzle_set_at(p: Puzzle, x: Int, y: Int, value: Cell) -> Puzzle {
+  let Puzzle(width:, height:, cells:) = p
+  case x, y {
+    x, y if x >= 0 && x < width && y >= 0 && y < height -> {
+      let i = x + y * width
+      let cells =
+        list.take(cells, i) |> list.append([value, ..list.drop(cells, i + 1)])
+      Puzzle(width:, height:, cells:)
+    }
+    _, _ -> p
+  }
+}
+
 fn puzzle_count_neighbor_boxes(p: Puzzle, x: Int, y: Int) -> Int {
   [
     #(-1, -1),
@@ -109,4 +101,49 @@ fn puzzle_count_neighbor_boxes(p: Puzzle, x: Int, y: Int) -> Int {
     }
   })
   |> list.fold(0, fn(a, b) { a + b })
+}
+
+fn find_places_we_can_remove_a_box(p: Puzzle) -> List(#(Int, Int)) {
+  let Puzzle(width:, height:, ..) = p
+
+  let x_list = utils.iterate_integers(0, step: 1, end: width - 1)
+  let y_list = utils.iterate_integers(0, step: 1, end: height - 1)
+
+  x_list
+  |> list.map(fn(x) {
+    y_list
+    |> list.map(fn(y) {
+      case puzzle_get_at(p, x, y) {
+        option.Some(Box) ->
+          case puzzle_count_neighbor_boxes(p, x, y) {
+            n if n < 4 -> option.Some(#(x, y))
+            _ -> option.None
+          }
+        _ -> option.None
+      }
+    })
+  })
+  |> list.flatten
+  |> list.filter_map(fn(x) {
+    case x {
+      option.Some(x) -> Ok(x)
+      option.None -> Error(Nil)
+    }
+  })
+}
+
+fn remove_boxes_until_we_cant(p: Puzzle) -> Int {
+  case find_places_we_can_remove_a_box(p) {
+    [] -> 0
+    places_we_can_remove_a_box -> {
+      let new_puzzle =
+        places_we_can_remove_a_box
+        |> list.fold(p, fn(p, location) {
+          let #(x, y) = location
+          p |> puzzle_set_at(x, y, Empty)
+        })
+      list.length(places_we_can_remove_a_box)
+      + remove_boxes_until_we_cant(new_puzzle)
+    }
+  }
 }
