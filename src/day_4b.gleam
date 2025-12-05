@@ -10,16 +10,12 @@ type Cell {
   Box
 }
 
-type Puzzle {
-  Puzzle(width: Int, height: Int, cells: List(Cell))
-}
-
 pub fn main(filename: String) -> Int {
-  let assert Ok(p) = parse_puzzle(filename)
+  let assert Ok(p) = parse(filename)
   remove_boxes_until_we_cant(p)
 }
 
-fn parse_puzzle(filename: String) -> Result(Puzzle, String) {
+fn parse(filename: String) -> Result(utils.Grid(Cell), String) {
   use lines <- result.try(
     utils.read_lines(filename) |> result.map_error(string.inspect),
   )
@@ -43,44 +39,10 @@ fn parse_puzzle(filename: String) -> Result(Puzzle, String) {
     |> utils.list_of_results_to_result,
   )
 
-  let height = list.length(data)
-  use width <- result.try(
-    case data |> list.map(list.length) |> set.from_list |> set.to_list {
-      [width] -> Ok(width)
-      _ -> Error("no lines or multiple lines of different lengths")
-    },
-  )
-
-  Ok(Puzzle(width:, height:, cells: data |> list.flatten))
+  utils.new_grid(data)
 }
 
-fn puzzle_get_at(p: Puzzle, x: Int, y: Int) -> option.Option(Cell) {
-  let Puzzle(width:, height:, cells:) = p
-  case x, y {
-    x, y if x >= 0 && x < width && y >= 0 && y < height -> {
-      case list.drop(cells, x + y * width) {
-        [result, ..] -> option.Some(result)
-        _ -> option.None
-      }
-    }
-    _, _ -> option.None
-  }
-}
-
-fn puzzle_set_at(p: Puzzle, x: Int, y: Int, value: Cell) -> Puzzle {
-  let Puzzle(width:, height:, cells:) = p
-  case x, y {
-    x, y if x >= 0 && x < width && y >= 0 && y < height -> {
-      let i = x + y * width
-      let cells =
-        list.take(cells, i) |> list.append([value, ..list.drop(cells, i + 1)])
-      Puzzle(width:, height:, cells:)
-    }
-    _, _ -> p
-  }
-}
-
-fn puzzle_count_neighbor_boxes(p: Puzzle, x: Int, y: Int) -> Int {
+fn count_neighbor_boxes(g: utils.Grid(Cell), x: Int, y: Int) -> Int {
   [
     #(-1, -1),
     #(-1, 0),
@@ -95,7 +57,7 @@ fn puzzle_count_neighbor_boxes(p: Puzzle, x: Int, y: Int) -> Int {
     let #(x_delta, y_delta) = deltas
     let neighbor_x = x + x_delta
     let neighbor_y = y + y_delta
-    case puzzle_get_at(p, neighbor_x, neighbor_y) {
+    case utils.grid_get_at(g, neighbor_x, neighbor_y) {
       option.Some(Box) -> 1
       _ -> 0
     }
@@ -103,8 +65,8 @@ fn puzzle_count_neighbor_boxes(p: Puzzle, x: Int, y: Int) -> Int {
   |> list.fold(0, fn(a, b) { a + b })
 }
 
-fn find_places_we_can_remove_a_box(p: Puzzle) -> List(#(Int, Int)) {
-  let Puzzle(width:, height:, ..) = p
+fn find_places_we_can_remove_a_box(g: utils.Grid(Cell)) -> List(#(Int, Int)) {
+  let utils.Grid(width:, height:, ..) = g
 
   let x_list = utils.iterate_integers(0, step: 1, end: width - 1)
   let y_list = utils.iterate_integers(0, step: 1, end: height - 1)
@@ -113,9 +75,9 @@ fn find_places_we_can_remove_a_box(p: Puzzle) -> List(#(Int, Int)) {
   |> list.map(fn(x) {
     y_list
     |> list.map(fn(y) {
-      case puzzle_get_at(p, x, y) {
+      case utils.grid_get_at(g, x, y) {
         option.Some(Box) ->
-          case puzzle_count_neighbor_boxes(p, x, y) {
+          case count_neighbor_boxes(g, x, y) {
             n if n < 4 -> option.Some(#(x, y))
             _ -> option.None
           }
@@ -132,18 +94,18 @@ fn find_places_we_can_remove_a_box(p: Puzzle) -> List(#(Int, Int)) {
   })
 }
 
-fn remove_boxes_until_we_cant(p: Puzzle) -> Int {
-  case find_places_we_can_remove_a_box(p) {
+fn remove_boxes_until_we_cant(g: utils.Grid(Cell)) -> Int {
+  case find_places_we_can_remove_a_box(g) {
     [] -> 0
     places_we_can_remove_a_box -> {
-      let new_puzzle =
+      let new_g =
         places_we_can_remove_a_box
-        |> list.fold(p, fn(p, location) {
+        |> list.fold(g, fn(p, location) {
           let #(x, y) = location
-          p |> puzzle_set_at(x, y, Empty)
+          p |> utils.grid_set_at(x, y, Empty)
         })
       list.length(places_we_can_remove_a_box)
-      + remove_boxes_until_we_cant(new_puzzle)
+      + remove_boxes_until_we_cant(new_g)
     }
   }
 }

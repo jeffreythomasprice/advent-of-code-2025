@@ -1,6 +1,9 @@
+import gleam/dict
 import gleam/list
+import gleam/option
 import gleam/regexp
 import gleam/result
+import gleam/set
 import gleam/string
 import simplifile
 
@@ -99,4 +102,44 @@ pub fn iterate_integers(current: Int, step step: Int, end end: Int) -> List(Int)
     True -> [current, ..iterate_integers(current + step, step: step, end: end)]
     False -> []
   }
+}
+
+pub type Grid(t) {
+  Grid(width: Int, height: Int, data: dict.Dict(#(Int, Int), t))
+}
+
+pub fn new_grid(data: List(List(t))) -> Result(Grid(t), String) {
+  let height = list.length(data)
+
+  use width <- result.try(
+    case data |> list.map(list.length) |> set.from_list |> set.to_list {
+      [width] -> Ok(width)
+      _ -> Error("no lines or multiple lines of different lengths")
+    },
+  )
+
+  let data =
+    data
+    |> list.index_map(fn(row, y) {
+      row
+      |> list.index_map(fn(value, x) { #(#(x, y), value) })
+    })
+    |> list.flatten
+    |> dict.from_list
+
+  Ok(Grid(width:, height:, data:))
+}
+
+pub fn grid_get_at(g: Grid(value), x: Int, y: Int) -> option.Option(value) {
+  let Grid(data:, ..) = g
+  case data |> dict.get(#(x, y)) {
+    Ok(result) -> option.Some(result)
+    Error(_) -> option.None
+  }
+}
+
+pub fn grid_set_at(g: Grid(value), x: Int, y: Int, value: value) -> Grid(value) {
+  let Grid(width:, height:, data:) = g
+  let data = data |> dict.insert(#(x, y), value)
+  Grid(width:, height:, data:)
 }
