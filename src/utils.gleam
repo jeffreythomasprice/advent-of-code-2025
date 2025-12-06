@@ -98,7 +98,11 @@ pub fn list_of_results_to_result(l: List(Result(t, e))) -> Result(List(t), e) {
 }
 
 pub fn iterate_integers(current: Int, step step: Int, end end: Int) -> List(Int) {
-  case current <= end {
+  let comparison = case step > 0 {
+    True -> fn(a, b) { a <= b }
+    False -> fn(a, b) { a >= b }
+  }
+  case comparison(current, end) {
     True -> [current, ..iterate_integers(current + step, step: step, end: end)]
     False -> []
   }
