@@ -134,6 +134,16 @@ pub fn new_grid(data: List(List(t))) -> Result(Grid(t), String) {
   Ok(Grid(width:, height:, data:))
 }
 
+pub fn grid_iterate_width(g: Grid(value)) -> List(Int) {
+  let Grid(width:, ..) = g
+  iterate_integers(0, step: 1, end: width - 1)
+}
+
+pub fn grid_iterate_height(g: Grid(value)) -> List(Int) {
+  let Grid(height:, ..) = g
+  iterate_integers(0, step: 1, end: height - 1)
+}
+
 pub fn grid_get_at(g: Grid(value), x: Int, y: Int) -> option.Option(value) {
   let Grid(data:, ..) = g
   case data |> dict.get(#(x, y)) {
@@ -146,4 +156,18 @@ pub fn grid_set_at(g: Grid(value), x: Int, y: Int, value: value) -> Grid(value) 
   let Grid(width:, height:, data:) = g
   let data = data |> dict.insert(#(x, y), value)
   Grid(width:, height:, data:)
+}
+
+pub fn grid_to_string(g: Grid(value), to_string: fn(value) -> String) -> String {
+  let Grid(width:, height:, ..) = g
+  iterate_integers(0, step: 1, end: height - 1)
+  |> list.map(fn(y) {
+    iterate_integers(0, step: 1, end: width - 1)
+    |> list.map(fn(x) {
+      let assert option.Some(value) = grid_get_at(g, x, y)
+      to_string(value)
+    })
+    |> string.join("")
+  })
+  |> string.join("\n")
 }

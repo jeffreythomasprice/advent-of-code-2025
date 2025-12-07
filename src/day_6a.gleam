@@ -73,12 +73,12 @@ fn parse(filename: String) -> Result(List(#(Operator, List(Int))), String) {
     |> utils.list_of_results_to_result,
   )
 
-  let utils.Grid(width:, height:, ..) = number_lines
+  let utils.Grid(width:, ..) = number_lines
   assert width == list.length(operators)
 
   operators
   |> list.index_map(fn(operator, x) {
-    utils.iterate_integers(0, step: 1, end: height - 1)
+    utils.grid_iterate_height(number_lines)
     |> list.map(fn(y) {
       case utils.grid_get_at(number_lines, x, y) {
         option.Some(result) -> Ok(result)

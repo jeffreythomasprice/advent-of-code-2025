@@ -65,14 +65,9 @@ fn count_neighbor_boxes(g: utils.Grid(Cell), x: Int, y: Int) -> Int {
 }
 
 fn find_places_we_can_remove_a_box(g: utils.Grid(Cell)) -> List(#(Int, Int)) {
-  let utils.Grid(width:, height:, ..) = g
-
-  let x_list = utils.iterate_integers(0, step: 1, end: width - 1)
-  let y_list = utils.iterate_integers(0, step: 1, end: height - 1)
-
-  x_list
+  utils.grid_iterate_width(g)
   |> list.map(fn(x) {
-    y_list
+    utils.grid_iterate_height(g)
     |> list.map(fn(y) {
       case utils.grid_get_at(g, x, y) {
         option.Some(Box) ->
