@@ -66,7 +66,7 @@ fn solve_row(puzzle: utils.Grid(Cell), y: Int) -> #(utils.Grid(Cell), Int) {
     {
       // hitting a spitter
       _, _, option.Some(Line), _, _, option.Some(Splitter) -> #(Splitter, 1)
-      // splitter above
+      // start above
       _, _, option.Some(Start), _, _, option.Some(Empty) -> #(Line, 0)
       // active splitter to our left
       option.Some(Splitter), option.Some(Line), _, _, _, option.Some(Empty) -> #(
