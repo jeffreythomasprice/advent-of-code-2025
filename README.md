@@ -33,6 +33,8 @@ TESTS=day_8b_sample gleam test
 TESTS=day_8b gleam test
 TESTS=day_9a_sample gleam test
 TESTS=day_9a gleam test
+TESTS=day_9b_sample gleam test
+TESTS=day_9b gleam test
 ```
 
 less output
